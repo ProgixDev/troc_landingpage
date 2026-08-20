@@ -1,0 +1,268 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Design tokens — the single source of truth for the landing page.
+ * The brand values are lifted verbatim from `AppColors` in
+ * lib/splash_screen.dart so the site and the app can never drift apart.
+ * Declared as space-separated RGB channels so Tailwind's `<alpha-value>`
+ * syntax works (`bg-navy/40`, `text-orange/70`, …).
+ *
+ * The page is light — a white ground with the app's own faint blue/orange
+ * wash, matching the product screenshots. `--fg` is the ink navy that
+ * Tailwind's `white` token is re-pointed at (see tailwind.config.ts), so every
+ * `text-white/55`-style class in the components resolves to a navy tint.
+ */
+@layer base {
+  :root {
+    /* --- brand (from AppColors) --- */
+    --brand-navy: 23 59 114; /* #173B72 */
+    --brand-navy-dark: 14 42 84; /* #0E2A54 */
+    --brand-blue-light: 44 90 160; /* #2C5AA0 */
+    --brand-blue-soft: 234 241 252; /* #EAF1FC */
+    --brand-orange: 255 107 53; /* #FF6B35 */
+    --brand-orange-dark: 226 82 28; /* #E2521C */
+    --brand-orange-soft: 255 234 221; /* #FFEADD */
+    --brand-success: 34 160 70; /* readable green on white */
+    --text-grey: 124 137 163; /* #7C89A3 */
+
+    /* --- light surfaces --- */
+    --surface-page: 255 255 255;
+    --surface-ink: 10 30 62; /* headings + the app's darkest navy */
+    --surface-ink-soft: 14 42 84;
+    --surface-mist: 238 242 249; /* #EEF2F9, the app's light bg */
+
+    /* The single knob the whole theme hangs from. */
+    --fg: 12 34 68;
+
+    /* --- card recipe (opaque: no backdrop-filter anywhere, it is what made
+           whole sections drop out mid-scroll on mobile) --- */
+    --card-bg: 255 255 255;
+    --card-border: 12 34 68 / 0.09;
+    --card-border-strong: 12 34 68 / 0.14;
+    --card-shadow: 0 18px 44px -28px rgb(12 34 68 / 0.35);
+    --card-shadow-strong: 0 26px 60px -30px rgb(12 34 68 / 0.4);
+
+    /* --- type --- */
+    --font-display: "Space Grotesk", system-ui, sans-serif;
+    --font-body: "Plus Jakarta Sans", system-ui, sans-serif;
+
+    /* --- motion --- */
+    --ease-brand: cubic-bezier(0.22, 1, 0.36, 1);
+    --nav-h: 76px;
+
+    color-scheme: light;
+  }
+
+  * {
+    @apply border-white/10;
+  }
+
+  html {
+    /* Lenis drives the scroll on pointer devices; native smooth-scroll would
+       fight it. */
+    scroll-behavior: auto;
+    -webkit-text-size-adjust: 100%;
+    background-color: rgb(var(--surface-page));
+  }
+
+  body {
+    @apply bg-page font-body text-white/70 antialiased;
+    /* Ambient brand light — the same two soft pools the app draws behind its
+       dashboard, kept very low so the ground still reads as white.
+       NOT `background-attachment: fixed`: that forces a full-page repaint on
+       every scroll frame and is a large part of the mobile stutter. */
+    background-image:
+      radial-gradient(
+        62rem 40rem at 10% -8%,
+        rgb(var(--brand-blue-light) / 0.1),
+        transparent 60%
+      ),
+      radial-gradient(
+        48rem 34rem at 96% 4%,
+        rgb(var(--brand-orange) / 0.07),
+        transparent 58%
+      );
+    background-repeat: no-repeat;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display;
+    color: rgb(var(--surface-ink));
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: rgb(var(--brand-orange) / 0.24);
+    color: rgb(var(--surface-ink));
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: rgb(var(--surface-mist));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--brand-blue-light) / 0.35);
+    border-radius: 999px;
+    border: 3px solid rgb(var(--surface-mist));
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--brand-blue-light) / 0.6);
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--brand-orange));
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  img {
+    max-width: 100%;
+  }
+}
+
+@layer components {
+  /*
+   * The card every surface on the page is built from.
+   *
+   * Deliberately opaque. The previous version used `backdrop-filter: blur()`,
+   * which — nested inside the scroll sections' `filter`/`preserve-3d` context —
+   * made Chrome and Safari render the panel as an empty box (the "missing third
+   * card" / "pricing card doesn't appear"), and cost a full-viewport blur pass
+   * per card per frame while scrolling.
+   */
+  .glass {
+    background: rgb(var(--card-bg));
+    border: 1px solid rgb(var(--card-border));
+    box-shadow: var(--card-shadow);
+  }
+
+  .glass-strong {
+    background: rgb(var(--card-bg));
+    border: 1px solid rgb(var(--card-border-strong));
+    box-shadow: var(--card-shadow-strong);
+  }
+
+  .shell {
+    @apply mx-auto w-full max-w-shell px-5 sm:px-8 lg:px-10;
+  }
+
+  /* Section eyebrow: small caps pill above every section heading. */
+  .eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full border border-white/10
+      bg-white/[0.04] px-3.5 py-1.5 font-body text-[11px] font-semibold
+      uppercase tracking-[0.18em] text-white/55;
+  }
+
+  /* Warm ramp, kept above the white ground's luminance for its whole run. */
+  .text-gradient {
+    background: linear-gradient(
+      104deg,
+      rgb(var(--brand-orange-dark)) 0%,
+      rgb(var(--brand-orange)) 62%,
+      rgb(var(--brand-orange-dark)) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Gradient ring used on the highlighted pricing card and CTA banner. */
+  .gradient-ring {
+    position: relative;
+  }
+  .gradient-ring::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      140deg,
+      rgb(var(--brand-orange) / 0.9),
+      rgb(var(--brand-blue-light) / 0.5) 55%,
+      rgb(var(--brand-orange) / 0.5)
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Hairline divider that fades out at both ends. */
+  .rule {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(var(--fg) / 0.12) 18%,
+      rgb(var(--fg) / 0.12) 82%,
+      transparent
+    );
+  }
+
+  /*
+   * The section reveal.
+   *
+   * Transform + opacity only, run once by an IntersectionObserver (see
+   * DepthSection). No scrubbed blur, no 3D plane, no permanent `will-change`:
+   * the old version scrubbed `filter: blur()` and `scale` on whole sections in
+   * both directions, and a section that entered while the *exit* tween was
+   * already live got stranded at `opacity: .28`, which is why cards went
+   * missing and the page stuttered.
+   */
+  .reveal {
+    opacity: 0;
+    transform: translate3d(0, 34px, 0);
+    transition:
+      opacity 0.75s var(--ease-brand),
+      transform 0.75s var(--ease-brand);
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@layer utilities {
+  .will-transform {
+    will-change: transform;
+  }
+}
+
+/*
+ * Accessibility: honour prefers-reduced-motion by killing parallax,
+ * rotation and looping idle animations. Opacity fades are kept — they
+ * carry meaning (reveal) without vestibular risk.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.12s !important;
+    scroll-behavior: auto !important;
+  }
+
+  .reveal {
+    transform: none !important;
+  }
+
+  .rm-static {
+    transform: none !important;
+    filter: none !important;
+  }
+}
