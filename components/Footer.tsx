@@ -28,7 +28,7 @@ const COLUMNS: { heading: keyof Dict; links: { label: keyof Dict; href: string }
     heading: "footer.legal",
     links: [
       { label: "footer.terms", href: "#terms" },
-      { label: "footer.privacy", href: "#privacy" },
+      { label: "footer.privacy", href: "/privacy" },
       { label: "footer.cookies", href: "#cookies" },
       { label: "footer.legalNotice", href: "#legal" },
     ],
